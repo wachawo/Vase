@@ -10,9 +10,9 @@ EDITOR="${EDITOR:-vi}"
 
 ################## VM STUFF
 arch="x86_64"
-ram="16000"
+ram="8096"
 # 16384 4048 2024 1012
-cores="6"
+cores="8"
 # vCPUS so actually threads but named it cores
 size="60G" 
 # Preallocation doesnt take space directly
@@ -21,14 +21,14 @@ qemu_machine="q35"
 # Machine type: q35, pc
 qemu_display="sdl"
 # Display backend: sdl, gtk, vnc
-qemu_gl="on"
-# GL acceleration: on, off
+qemu_gl="1"
+# GL acceleration: 1 or 0
 qemu_uefi=1
 # UEFI boot: 1 or 0
 qemu_network="user"
 # Network: user, none, bridge
 boot_menu="on"
-# Boot menu: on, off
+# Boot menu: on or off
 
 audio_backend="pipewire"  # pa, alsa, pipewire, or none
 audio_device="intel-hda"  # intel-hda, AC97, usb-audio

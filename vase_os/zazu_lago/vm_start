@@ -16,7 +16,7 @@ session_uuid=$(cat /proc/sys/kernel/random/uuid)
 short_uuid=$(echo "$session_uuid" | tr -d '-' | cut -c1-6)
 
 display="${qemu_display:-sdl}"
-gl="${qemu_gl:-off}"
+gl="${qemu_gl:-0}"
 use_uefi="${qemu_uefi:-0}"
 machine="${qemu_machine:-q35}"
 network="${qemu_network:-user}"
@@ -134,7 +134,7 @@ qemu_cmd() {
         else
             # VirtIO GPU (default)
             cmd="$cmd -vga none"
-            if [ "$gl" = "on" ]; then
+            if [ "$gl" = "1" ]; then
                 cmd="$cmd -device virtio-gpu-pci -display ${display},gl=on"
             else
                 cmd="$cmd -device virtio-gpu-pci -display ${display}"
@@ -220,8 +220,8 @@ qemu_cmd() {
 show_menu() {
     echo "########################################"
     echo "Zazu_lago VM Tooling: rdisk, brick, then dupk."
-    echo "Display: ${display} | GL: ${gl} | UEFI: ${use_uefi}"
     echo "Machine: ${machine} | Net: ${network}"
+    echo "Display: ${display} | GL: ${gl} | UEFI: ${use_uefi}"
     echo "########################################"
     echo " rdisk   : Reset ${vm_name} ${size}"
     echo " dupk    : Permanent copy"

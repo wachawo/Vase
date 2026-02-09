@@ -19,7 +19,7 @@ case "$audio_backend" in
 esac
 
 # Add GL renderer if enabled
-[ "$qemu_gl" = "on" ] && pkgs_needed="$pkgs_needed virglrenderer"
+[ "$qemu_gl" = "1" ] && pkgs_needed="$pkgs_needed virglrenderer"
 
 missing_pkgs=""
 
