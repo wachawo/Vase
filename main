@@ -197,11 +197,6 @@ if im_groot; then
         # shellcheck disable=SC2046  # Intentional word splitting for multiple args
         "./${hb_d}/install" $(get_tui_cmd) && ./"${cc_py}" || exit
     fi
-    # Tree output
-    if cmd_exists "tree"; then
-        info "Output dir strucs to .directory file..."
-        tree_dir "$s_dir" # Outputs tree to .dir file conditional
-    fi 
     # Use reop for regular operation green output
     if im_elev; then
         obanner "PERMS CHECK"

@@ -2,12 +2,11 @@
 .zed/
 .vscode/
 
-.secrets
-vase_os/zazu_lago/c/*.qcow2
-vase_os/zazu_lago/c/**.fd
-vase_os/zazu_lago/d/*.iso*
-vase_os/zazu_lago/archiso_work/
-vase_os/zazu_lago/archiso_profile
+**/**.qcow2
+**/**.fd
+**/**.iso
+**/**.img
+**/archiso_*/
 
 install-*.log
 logs/*
@@ -16,13 +15,10 @@ __pycache__/*
 *.pyc
 __pycache__
 /.directory
-/znotes.md
-/traffic
-/traffic.json
-/traffic.json.backup
+.idea*
+**/idea/
+
 src/
 pkg/
 *.pkg.tar.zst
 vase-git/
-*.iso
-*.img

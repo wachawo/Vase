@@ -95,9 +95,6 @@ get_quick_cmd() {
 get_tui_cmd() {
     echo "${TUI_CMD}"
 }
-get_branch_name() {
-    echo "${BRANCH_NAME}"
-}
 bytes_to_gib() {
     local bytes="$1"
     awk "BEGIN {printf \"%.1fGiB\", $bytes/1024/1024/1024}"
@@ -170,7 +167,9 @@ dir_excreate() {
 }
 elev_type() {
     # shellcheck disable=SC2034  # priv_esc used by callers (vase)
-    if command -v doas &>/dev/null; then
+    if command -v run0 &>/dev/null; then
+        priv_esc="run0"
+    elif command -v doas &>/dev/null; then
         priv_esc="doas"
     elif command -v sudo &>/dev/null; then
         priv_esc="sudo"
@@ -180,7 +179,7 @@ elev_type() {
 }
 get_real_user() {
     # Return the non-root user who invoked the elevated session
-    if [ -n "$SUDO_USER" ]; then
+    if [ -n "$SUDO_USER" ]; then # note this handles run0 too
         echo "$SUDO_USER"
     elif [ -n "$DOAS_USER" ]; then
         echo "$DOAS_USER"
@@ -297,30 +296,5 @@ vase_init() {
     if [ -n "${rel}" ] && [ -n "${p_lib}" ] && [ -n "${rcw_file}" ] && \
        [ -f "${rel}${p_lib}/${rcw_file}" ]; then
         . "${rel}${p_lib}/${rcw_file}"
-    fi
-}
-tree_dir() {
-    if ! dir_ex "$1"; then
-        return 1
-    fi
-
-    local current_tree
-    current_tree=$(tree -a --dirsfirst --gitignore -I '.git|.md5|archinstall_official|archinstall_patch' "$1" 2>/dev/null)
-    local current_hash
-    current_hash=$(echo "$current_tree" | md5sum | awk '{print $1}')
-    local stored_hash=""
-
-    if file_ex "$1/.directory"; then
-        stored_hash=$(grep "^# th: " "$1/.directory" 2>/dev/null | awk '{print $3}')
-    fi
-
-    if [ "$current_hash" != "$stored_hash" ]; then
-        {
-            echo "[Desktop Entry]"
-            echo "Icon=folder-log"
-            echo "# th: $current_hash"
-            echo ""
-            echo "$current_tree" | tail -n +2
-        } > "$1/.directory"
     fi
 }
