@@ -204,8 +204,6 @@ if im_groot; then
 
         cbanner "PERMS CHECK"
         obanner "ENVIR CHECK"
-        "./${vase_p_deps}"
-
         rcw "echo \"${vm_d}/: \$(du -sh \"./${zl_d}/${vm_d}/\" | cut -f1) (\$(find \"./${zl_d}/${vm_d}/\" -type f | wc -l))\""
         rcw "echo \"c/: \$(du -sh \"./${zl_d}/c/\" | cut -f1) (\$(find \"./${zl_d}/c/\" -type f | wc -l))\""
 
