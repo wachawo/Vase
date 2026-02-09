@@ -5,17 +5,29 @@
 vase_init
 
 # Base QEMU packages
-pkgs_needed="qemu-system-x86 qemu-img qemu-hw-display-virtio-gpu-pci qemu-hw-display-virtio-gpu"
+pkgs_needed="qemu-system-x86 qemu-img"
+
+# Add GPU device packages based on config
+case "${qemu_gpu:-virtio-gpu-pci}" in
+    virtio-gpu-pci)
+        pkgs_needed="$pkgs_needed qemu-hw-display-virtio-gpu-pci qemu-hw-display-virtio-gpu"
+        ;;
+    virtio-vga)
+        pkgs_needed="$pkgs_needed qemu-hw-display-virtio-vga qemu-hw-display-virtio-gpu"
+        ;;
+esac
 
 # Add display backend packages based on config
 case "$qemu_display" in
-    gtk) pkgs_needed="$pkgs_needed qemu-ui-gtk" ;;
+    gtk) pkgs_needed="$pkgs_needed qemu-ui-gtk qemu-ui-opengl" ;;
     sdl) pkgs_needed="$pkgs_needed qemu-ui-sdl" ;;
 esac
 
 # Add audio backend packages based on config
 case "$audio_backend" in
     pipewire) pkgs_needed="$pkgs_needed qemu-audio-pipewire" ;;
+    pa|pulse) pkgs_needed="$pkgs_needed qemu-audio-pa" ;;
+    alsa) pkgs_needed="$pkgs_needed qemu-audio-alsa" ;;
 esac
 
 # Add GL renderer if enabled

@@ -19,10 +19,15 @@ size="60G"
 ## QEMU Settings
 qemu_machine="q35"
 # Machine type: q35, pc
-qemu_display="sdl"
+qemu_display="gtk"
 # Display backend: sdl, gtk, vnc
 qemu_gl="1"
 # GL acceleration: 1 or 0
+qemu_gpu="virtio-gpu-pci"
+# GPU device: virtio-gpu-pci, virtio-vga
+# virtio-gpu-pci: standard virtio GPU (default)
+# virtio-vga: VGA compatible (may work better with NVIDIA)
+# GL acceleration is set via qemu_gl, not device name
 qemu_uefi=1
 # UEFI boot: 1 or 0
 qemu_network="user"
@@ -30,14 +35,40 @@ qemu_network="user"
 boot_menu="on"
 # Boot menu: on or off
 
-audio_backend="pipewire"  # pa, alsa, pipewire, or none
-audio_device="intel-hda"  # intel-hda, AC97, usb-audio
+## IOMMU Settings (Q35 only)
+qemu_iommu=1
+# Enable intel-iommu: 1 or 0
+iommu_intremap="on"
+# Interrupt remapping: on, off
+# Needed for: interrupt isolation, secure passthrough
+iommu_caching="on"
+# Caching mode: on, off
+# Set "on" for: GPU passthrough, VFIO devices
+# Performance: "off" is faster if not doing passthrough
+iommu_device_iotlb="off"
+# Device IOTLB: on, off
+# Improves: DMA performance for passthrough devices
+iommu_aw_bits="39"
+# Address width: 39, 48
+# 48-bit: larger guest memory support (>512GB)
 
 ## OVMF (UEFI firmware) paths
 ovmf_code="/usr/share/edk2/x64/OVMF_CODE.4m.fd"
 ovmf_vars_source="/usr/share/edk2/x64/OVMF_VARS.4m.fd"
 ovmf_vars_local="OVMF_VARS.fd"
 # Local writable copy, auto-created on first boot
+
+audio_backend="pipewire"  # pa, alsa, pipewire, or none
+audio_device="intel-hda"  # intel-hda, AC97, usb-audio
+
+## For running with attached storage
+target_p="sdc"
+target_t="/dev/"
+target="${target_t}${target_p}"
+## This can also be a mounted fs
+# Mount it first. 
+# Check lsblk output to find which partition it is. 
+# Ex sdd3 8:51   0 880.5G  0 part /run/media/usr/UUID
 
 vm_d="d"
 
@@ -51,15 +82,6 @@ vm_name="myvm0"
 #dupkvm will look something like this 9c901bmyvm1
 
 vm_ext="qcow2" #raw, bin
-
-## For running with attached storage
-target_p="sdc"
-target_t="/dev/"
-target="${target_t}${target_p}"
-## This can also be a mounted fs
-# Mount it first. 
-# Check lsblk output to find which partition it is. 
-# Ex sdd3 8:51   0 880.5G  0 part /run/media/usr/UUID
 
 ################## DIRS/LOGS/PERMS
 s_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

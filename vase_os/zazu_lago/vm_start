@@ -17,6 +17,7 @@ short_uuid=$(echo "$session_uuid" | tr -d '-' | cut -c1-6)
 
 display="${qemu_display:-sdl}"
 gl="${qemu_gl:-0}"
+gpu_device="${qemu_gpu:-virtio-gpu-pci}"
 use_uefi="${qemu_uefi:-0}"
 machine="${qemu_machine:-q35}"
 network="${qemu_network:-user}"
@@ -103,8 +104,18 @@ generate_mac() {
 qemu_cmd() {
     local image="$1"
     shift
-    # Base command
-    local cmd="qemu-system-${arch} -machine ${machine},accel=kvm -enable-kvm -m ${ram} -cpu host -smp ${cores}"
+    # Base command with machine type
+    local cmd="qemu-system-${arch}"
+
+    # Machine args (with IOMMU needs kernel-irqchip=split)
+    if [ "${qemu_iommu:-0}" = "1" ]; then
+        cmd="$cmd -machine ${machine},accel=kvm,kernel-irqchip=split"
+        cmd="$cmd -device intel-iommu,intremap=${iommu_intremap:-on},caching-mode=${iommu_caching:-off},device-iotlb=${iommu_device_iotlb:-off},aw-bits=${iommu_aw_bits:-39}"
+    else
+        cmd="$cmd -machine ${machine},accel=kvm"
+    fi
+
+    cmd="$cmd -m ${ram} -cpu host -smp ${cores}"
 
     # Add UEFI firmware if enabled
     if [ "$use_uefi" = "1" ]; then
@@ -135,9 +146,9 @@ qemu_cmd() {
             # VirtIO GPU (default)
             cmd="$cmd -vga none"
             if [ "$gl" = "1" ]; then
-                cmd="$cmd -device virtio-gpu-pci -display ${display},gl=on"
+                cmd="$cmd -device ${gpu_device} -display ${display},gl=on"
             else
-                cmd="$cmd -device virtio-gpu-pci -display ${display}"
+                cmd="$cmd -device ${gpu_device} -display ${display}"
             fi
         fi
     else
@@ -221,7 +232,8 @@ show_menu() {
     echo "########################################"
     echo "Zazu_lago VM Tooling: rdisk, brick, then dupk."
     echo "Machine: ${machine} | Net: ${network}"
-    echo "Display: ${display} | GL: ${gl} | UEFI: ${use_uefi}"
+    echo "Display: ${display} | GL: ${gl} | GPU: ${gpu_device}"
+    echo "UEFI: ${use_uefi} | IOMMU: ${qemu_iommu:-0}"
     echo "########################################"
     echo " rdisk   : Reset ${vm_name} ${size}"
     echo " dupk    : Permanent copy"
