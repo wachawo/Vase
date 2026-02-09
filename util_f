@@ -9,7 +9,7 @@
 #utilities
 show_help() {
     cat << 'EOF'
-VaseOS - Arch Linux KDE Testing Suite
+VaseOS - Arch Linux KVM/QEMU Testing Suite
 
 Usage: ./main [OPTIONS]
 
