@@ -1,38 +1,77 @@
-#!/bin/bash
-# Post-commit hook: Generate MD5 hashes for modified/added/deleted files only
-#
-# SETUP ON NEW SYSTEM:
-# Run once after cloning: git config core.hooksPath .github/hooks
+#!/usr/bin/env python3
+"""
+Post-commit hook: Generate MD5 hashes for modified/added/deleted files only
 
-# Ensure .md5 directory exists
-mkdir -p ".md5"
+SETUP ON NEW SYSTEM:
+Run once after cloning: git config core.hooksPath .github/hooks
+"""
 
-# Get files changed in the last commit (excluding .md5/ directory)
-git diff --name-only HEAD~1 HEAD | grep -v "^\.md5/" | while read -r file; do
-    # Hash the file path - used as the .md5 filename
-    path_hash=$(printf '%s' "$file" | md5sum | awk '{print $1}')
+import hashlib
+import os
+import subprocess
+from datetime import datetime
 
-    if [ -f "$file" ]; then
-        # File exists - update its hash (per-line format: line_number:hash)
-        : > ".md5/$path_hash.md5"  # Clear/create the file
-        # Line 0: hash of the file path (for reverse lookup)
-        echo "0:$path_hash" >> ".md5/$path_hash.md5"
-        # Lines 1+: hash of each line's content
-        line_num=0
-        while IFS= read -r line || [ -n "$line" ]; do
-            line_num=$((line_num + 1))
-            hash=$(printf '%s' "$line" | md5sum | awk '{print $1}')
-            echo "$line_num:$hash" >> ".md5/$path_hash.md5"
-        done < "$file"
-    else
-        # File was deleted - remove its hash file
-        rm -f ".md5/$path_hash.md5"
-    fi
-done
+def md5(s):
+    return hashlib.md5(s.encode()).hexdigest()
 
-# Check if there are changes in .md5/
-if [ -n "$(git status --porcelain .md5/)" ]; then
-    # Stage and commit the .md5 changes
-    git add .md5/
-    git commit --no-verify -m "$(date +%H:%M) MD5 Sums"
-fi
+def hash_path(filepath):
+    """Hash each component of the path individually."""
+    parts = filepath.split(os.sep)
+    hashed_parts = [md5(part) for part in parts]
+    return os.path.join(*hashed_parts)
+
+def process_file(filepath):
+    path_hash = md5(filepath)
+    hashed_path = hash_path(filepath)
+    output_dir = os.path.join('.md5', os.path.dirname(hashed_path))
+    output_file = os.path.join('.md5', hashed_path)
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    output = [f"0:{path_hash}"]
+
+    with open(filepath, 'r', errors='replace') as f:
+        for i, line in enumerate(f, 1):
+            line_hash = md5(line.rstrip('\n'))
+            output.append(f"{i}:{line_hash}")
+
+    with open(output_file, 'w') as f:
+        f.write('\n'.join(output) + '\n')
+
+def main():
+    os.makedirs('.md5', exist_ok=True)
+
+    # Get files changed in the last commit (excluding .md5/)
+    result = subprocess.run(
+        ['git', 'diff', '--name-only', 'HEAD~1', 'HEAD'],
+        capture_output=True, text=True
+    )
+    files = [f for f in result.stdout.strip().split('\n') if f and not f.startswith('.md5/')]
+
+    for filepath in files:
+        if os.path.isfile(filepath):
+            process_file(filepath)
+        else:
+            # File was deleted - remove its hash file
+            hashed_path = hash_path(filepath)
+            md5_file = os.path.join('.md5', hashed_path)
+            if os.path.exists(md5_file):
+                os.remove(md5_file)
+                # Clean up empty parent directories
+                parent = os.path.dirname(md5_file)
+                while parent and parent != '.md5':
+                    try:
+                        os.rmdir(parent)
+                        parent = os.path.dirname(parent)
+                    except OSError:
+                        break
+
+    # Check if there are changes in .md5/
+    result = subprocess.run(['git', 'status', '--porcelain', '.md5/'], capture_output=True, text=True)
+    if result.stdout.strip():
+        subprocess.run(['git', 'add', '.md5/'])
+        timestamp = datetime.now().strftime('%H:%M')
+        subprocess.run(['git', 'commit', '--no-verify', '-m', f'{timestamp} MD5 Sums'])
+
+if __name__ == '__main__':
+    main()
