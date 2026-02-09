@@ -6,6 +6,11 @@
 # This file is part of Vase, licensed under 0BSD.
 # See LICENSE-0BSD for details.
 
+# Vase is a program that writes itself.
+# Upon first launch the program writes.
+# Some important files, you can modify.
+# Found in `.vase.d/`
+
 #main
 #set -e # Debug line
 ## Helpers any POSIX compliant command // bashims
