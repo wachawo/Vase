@@ -7,9 +7,15 @@
 # Get files changed in the last commit (excluding .md5/ directory)
 git diff --name-only HEAD~1 HEAD | grep -v "^\.md5/" | while read -r file; do
     if [ -f "$file" ]; then
-        # File exists - update its hash
+        # File exists - update its hash (per-line format: line_number:hash)
         mkdir -p ".md5/$(dirname "$file")"
-        md5sum "$file" | awk '{print $1}' > ".md5/$file.md5"
+        line_num=0
+        : > ".md5/$file.md5"  # Clear/create the file
+        while IFS= read -r line || [ -n "$line" ]; do
+            line_num=$((line_num + 1))
+            hash=$(printf '%s' "$line" | md5sum | awk '{print $1}')
+            echo "$line_num:$hash" >> ".md5/$file.md5"
+        done < "$file"
     else
         # File was deleted - remove its hash
         rm -f ".md5/$file.md5"

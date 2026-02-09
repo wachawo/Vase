@@ -27,8 +27,14 @@ git ls-files | grep -v "^\.md5/" | while IFS= read -r file; do
         # Create directory structure
         mkdir -p ".md5/$(dirname "$file")"
 
-        # Generate MD5 hash (same logic as post-commit hook)
-        md5sum "$file" | awk '{print $1}' > ".md5/$file.md5"
+        # Generate per-line MD5 hashes (format: line_number:hash)
+        line_num=0
+        : > ".md5/$file.md5"  # Clear/create the file
+        while IFS= read -r line || [ -n "$line" ]; do
+            line_num=$((line_num + 1))
+            hash=$(printf '%s' "$line" | md5sum | awk '{print $1}')
+            echo "$line_num:$hash" >> ".md5/$file.md5"
+        done < "$file"
 
         count=$((count + 1))
         if [ $((count % 50)) -eq 0 ]; then
