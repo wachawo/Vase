@@ -1,6 +1,12 @@
 #... strucs
+
+# Copyright (C) 2024-2026 ILLOGIC
+# 
+# This file is part of Vase, licensed under 0BSD.
+# See LICENSE-0BSD for details.
+
 # This file is an absolute mess but everything is declared here
-EDITOR="${EDITOR:-vim}"
+EDITOR="${EDITOR:-vi}"
 
 ################## VM STUFF
 arch="x86_64"
@@ -82,7 +88,6 @@ vase_d="vase_os"
 zl_d="$vase_d/zazu_lago"
 
 vase_p_env="$vase_d/env"
-vase_p_deps="$vase_d/mindeps"
 cc_py="$vase_d/clean_cache"
 
 ## For runtime output

@@ -1,4 +1,10 @@
 #!/bin/bash
+
+# Copyright (C) 2024-2026 ILLOGIC
+# 
+# This file is part of Vase, licensed under 0BSD.
+# See LICENSE-0BSD for details.
+
 # shellcheck disable=SC1090,SC1091
 #utilities
 show_help() {
